@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ChemAid | 風險混合計算器</title>
+    <style>
+        /* 延續 High-Stimulation 友善的黑底風格 */
+        body {
+            background-color: #000;
+            color: #ccc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 600px; width: 100%; }
+
+        h1 { color: #fff; text-align: center; margin-bottom: 5px; font-size: 1.5rem; letter-spacing: 1px; }
+        .subtitle { color: #666; text-align: center; font-size: 0.8rem; margin-bottom: 25px; }
+
+        /* 結果顯示區 - 這是你的「紅綠燈」 */
+        #result-card {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        #result-icon { font-size: 2.5rem; margin-bottom: 10px; }
+        #result-title { font-size: 1.2rem; font-weight: bold; color: #fff; margin-bottom: 5px; }
+        #result-desc { font-size: 0.9rem; color: #888; line-height: 1.4; }
+
+        /* 網格選擇區 */
+        .grid-label { color: #555; font-size: 0.8rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .substance-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 手機上顯示三列 */
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .chip {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: #aaa;
+            padding: 12px 5px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        /* 選中狀態 */
+        .chip.selected {
+            background: #fff;
+            color: #000;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        /* 禁用狀態 (選了兩個後，其他的變暗) */
+        .chip.disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* 底部導航 */
+        .nav-bar {
+            margin-top: auto;
+            border-top: 1px solid #222;
+            padding-top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+        }
+        .nav-link { color: #555; text-decoration: none; font-size: 0.9rem; }
+        .nav-link.active { color: #fff; font-weight: bold; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>CHEM-AID</h1>
+    <div class="subtitle">物質交互作用風險評估</div>
+
+    <div id="result-card">
+        <div id="result-icon">🛡️</div>
+        <div id="result-title">請選擇兩種物質</div>
+        <div id="result-desc">系統將評估兩者混合使用的潛在生理風險。</div>
+    </div>
+
+    <div class="grid-label">常見物質 (點選兩項)</div>
+    <div class="substance-grid" id="grid">
+        </div>
+</div>
+
+<div class="nav-bar">
+    <a href="Support.html" class="nav-link">← 返回選單</a>
+    <a href="../index.html" class="nav-link" style="color:#d32f2f;">緊急退出</a>
+</div>
+
+<script>
+    // 1. 定義物質清單 (用代號，避免審查敏感詞，也可以用縮寫)
+    const substances = [
+        { id: 'alc', name: '酒精 (Alcohol)' },
+        { id: 'g',   name: 'G水 (GHB/GBL)' },
+        { id: 'k',   name: 'K他命 (Ketamine)' },
+        { id: 'tina',name: '冰 (Meth)' },
+        { id: 'e',   name: 'E/MDMA' },
+        { id: 'rush',name: 'RUSH (Poppers)' },
+        { id: 'via', name: '偉哥 (Viagra)' },
+        { id: 'weed',name: '大麻 (Cannabis)' },
+        { id: 'coke',name: '可卡因 (Coke)' }
+    ];
+
+    // 2. 定義風險邏輯 (這是核心資產)
+    // High Risk = 🔴, Caution = 🟡, Low Risk = 🟢
+    // 這裡只列舉幾個關鍵範例，實際上你要根據 TripSit 完善
+    const interactions = [
+        // 致命組合 (Deadly)
+        { pair: ['g', 'alc'], level: 'danger', title: '🔴 致命危險 (Deadly)', desc: '極度危險！兩者皆為中樞神經抑制劑，混合極易導致昏迷、呼吸停止與嘔吐窒息。絕對禁止。' },
+        { pair: ['rush', 'via'], level: 'danger', title: '🔴 致命血壓驟降', desc: '極度危險！同時使用會導致血壓瞬間崩盤，引發心臟驟停或腦缺氧。絕對禁止。' },
+        { pair: ['tina', 'via'], level: 'danger', title: '🔴 心臟過載風險', desc: '興奮劑加上血管擴張劑，對心臟造成極大負擔，可能引發心悸或心臟意外。' },
+        
+        // 警告組合 (Caution)
+        { pair: ['alc', 'k'], level: 'warning', title: '🟡 高度噁心風險', desc: '容易引發劇烈嘔吐與暈眩（K-hole），若意識不清有窒息風險。' },
+        { pair: ['tina', 'g'], level: 'warning', title: '🟡 意識斷片風險', desc: '興奮劑會掩蓋 G 的藥效，容易導致補藥過量 (OD)，當興奮劑退去後會瞬間昏迷。' },
+        { pair: ['e', 'tina'], level: 'warning', title: '🟡 神經毒性疊加', desc: '雙重興奮劑，體溫過高與神經毒性風險倍增，加劇 Comedown 憂鬱感。' },
+        
+        // 低風險/其他 (Low Risk / Synergy) - 用詞要小心
+        { pair: ['weed', 'alc'], level: 'low', title: '🟢 暈眩加成', desc: '雖無致命風險，但容易導致極度暈眩（Spinning）或恐慌。' },
+    ];
+
+    // 狀態變數
+    let selected = [];
+
+    // 初始化介面
+    const grid = document.getElementById('grid');
+    substances.forEach(sub => {
+        const btn = document.createElement('div');
+        btn.className = 'chip';
+        btn.innerText = sub.name;
+        btn.onclick = () => toggleSelect(sub.id, btn);
+        btn.id = `btn-${sub.id}`; // 方便查找
+        grid.appendChild(btn);
+    });
+
+    function toggleSelect(id, btn) {
+        // 如果已經選中，則取消
+        if (selected.includes(id)) {
+            selected = selected.filter(item => item !== id);
+            btn.classList.remove('selected');
+        } else {
+            // 如果還沒滿 2 個，則選中
+            if (selected.length < 2) {
+                selected.push(id);
+                btn.classList.add('selected');
+            }
+        }
+        updateUI();
+    }
+
+    function updateUI() {
+        // 1. 控制按鈕禁用狀態
+        const allChips = document.querySelectorAll('.chip');
+        if (selected.length >= 2) {
+            allChips.forEach(chip => {
+                if (!chip.classList.contains('selected')) {
+                    chip.classList.add('disabled');
+                }
+            });
+        } else {
+            allChips.forEach(chip => chip.classList.remove('disabled'));
+        }
+
+        // 2. 計算結果
+        const card = document.getElementById('result-card');
+        const icon = document.getElementById('result-icon');
+        const title = document.getElementById('result-title');
+        const desc = document.getElementById('result-desc');
+
+        // 重置樣式
+        card.style.borderColor = '#333';
+        card.style.background = '#111';
+
+        if (selected.length < 2) {
+            icon.innerText = '🛡️';
+            title.innerText = '請選擇兩種物質';
+            desc.innerText = '系統將評估兩者混合使用的潛在生理風險。';
+            title.style.color = '#fff';
+            return;
+        }
+
+        // 查找交互結果 (不管順序)
+        const result = interactions.find(i => 
+            (i.pair[0] === selected[0] && i.pair[1] === selected[1]) ||
+            (i.pair[0] === selected[1] && i.pair[1] === selected[0])
+        );
+
+        if (result) {
+            icon.innerText = result.level === 'danger' ? '☠️' : (result.level === 'warning' ? '⚠️' : 'ℹ️');
+            title.innerText = result.title;
+            desc.innerText = result.desc;
+            
+            if (result.level === 'danger') {
+                card.style.borderColor = '#d32f2f';
+                card.style.background = 'rgba(211, 47, 47, 0.1)';
+                title.style.color = '#ff5252';
+            } else if (result.level === 'warning') {
+                card.style.borderColor = '#fbc02d';
+                card.style.background = 'rgba(251, 192, 45, 0.1)';
+                title.style.color = '#fbc02d';
+            } else {
+                card.style.borderColor = '#388e3c';
+                title.style.color = '#66bb6a';
+            }
+        } else {
+            // 未知或低風險
+            icon.innerText = '❔';
+            title.innerText = '資料不足 / 需謹慎';
+            desc.innerText = '系統暫無此特定組合的高風險警示，但仍請保持謹慎，注意劑量與身體反應。';
+            title.style.color = '#ccc';
+        }
+    }
+</script>
+
+</body>
+</html>

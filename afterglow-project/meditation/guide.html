@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Afterglow | 語音引導</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sacramento&display=swap" rel="stylesheet">
+    <style>
+        /* --- 全局設定 --- */
+        body {
+            background-color: #000;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        /* --- Header --- */
+        header {
+            width: 100%;
+            padding: 30px 20px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .logo {
+            font-family: 'Sacramento', cursive;
+            font-size: 3rem;
+            color: #e0e0e0;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .btn-home-small {
+            border: 1px solid #00aaff;
+            color: #00aaff;
+            padding: 6px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+
+        /* --- 主視覺區 (光球) --- */
+        .visual-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            position: relative;
+        }
+
+        .glow-orb {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,0,170,0.4), rgba(100,0,200,0.2));
+            box-shadow: 0 0 60px rgba(255, 0, 170, 0.4);
+            transition: transform 0.5s ease;
+        }
+
+        /* 播放時的呼吸動畫 */
+        .glow-orb.playing {
+            animation: deep-breathe 6s infinite ease-in-out;
+        }
+
+        @keyframes deep-breathe {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 60px rgba(255, 0, 170, 0.4); }
+            50% { transform: scale(1.15); box-shadow: 0 0 90px rgba(255, 0, 170, 0.7); }
+        }
+
+        /* --- 播放控制器 --- */
+        .controls-area {
+            width: 100%;
+            padding: 20px 30px 50px 30px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            transition: opacity 1s; /* 為了結束時淡出 */
+        }
+
+        /* 進度條容器 */
+        .progress-container {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.75rem;
+            color: #888;
+            font-variant-numeric: tabular-nums; /* 防止數字跳動 */
+        }
+
+        .progress-bar-bg {
+            flex: 1;
+            height: 6px;
+            background: #222;
+            border-radius: 3px;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: #00aaff;
+            border-radius: 3px;
+            box-shadow: 0 0 10px #00aaff;
+            transition: width 0.1s linear;
+        }
+
+        /* 按鈕群組 */
+        .btn-row {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        /* 播放按鈕 (粉色) */
+        .btn-play {
+            width: 70px;
+            height: 70px;
+            border-radius: 35px; /* 膠囊狀 */
+            border: 2px solid rgba(255, 0, 170, 0.6);
+            background: transparent;
+            color: #fff;
+            font-size: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(255, 0, 170, 0.3);
+            transition: all 0.2s;
+        }
+        
+        .btn-play:active { transform: scale(0.95); }
+
+        /* 返回按鈕 (藍色) */
+        .btn-back-large {
+            padding: 12px 30px;
+            border-radius: 30px;
+            border: 2px solid rgba(0, 170, 255, 0.6);
+            background: transparent;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1rem;
+            box-shadow: 0 0 20px rgba(0, 170, 255, 0.3);
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* --- 隱藏的音訊標籤 --- */
+        audio { display: none; }
+
+        /* --- 結束後的溫柔落地層 (Overlay) --- */
+        #landing-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 20;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 2s ease-in;
+            text-align: center;
+        }
+
+        .landing-text {
+            color: #fff; font-size: 1.5rem; margin-bottom: 30px; font-weight: 300; letter-spacing: 2px;
+        }
+
+        .landing-sub {
+            color: #888; font-size: 0.9rem; max-width: 280px; line-height: 1.6; margin-bottom: 40px;
+        }
+
+        .btn-cta {
+            padding: 15px 40px;
+            background: linear-gradient(45deg, #d63384, #9b2c6b);
+            color: #fff; border: none; border-radius: 50px;
+            font-size: 1rem; font-weight: bold; text-decoration: none;
+            box-shadow: 0 0 30px rgba(214, 51, 132, 0.4);
+            margin-bottom: 20px;
+            opacity: 0; transition: opacity 1s ease-in 1s; /* 延遲顯示 */
+        }
+
+        .btn-home-text {
+            color: #555; text-decoration: underline; font-size: 0.9rem; background: none; border: none; cursor: pointer;
+            opacity: 0; transition: opacity 1s ease-in 2s;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header id="app-header">
+        <h1 class="logo">Afterglow</h1>
+        <a href="menu.html" class="btn-home-small">回首頁</a>
+    </header>
+
+    <div class="visual-container">
+        <div class="glow-orb" id="orb"></div>
+    </div>
+
+    <div class="controls-area" id="controls">
+        <div class="progress-container">
+            <span id="current-time">00:00</span>
+            <div class="progress-bar-bg" id="progress-bg">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <span id="duration">05:22</span>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn-play" id="play-btn">▶</button>
+            
+            <a href="menu.html" class="btn-back-large">回前頁</a>
+        </div>
+    </div>
+
+    <audio id="audio-player" src="../assets/audio/guide.mp3" preload="metadata"></audio>
+
+    <div id="landing-overlay">
+        <div class="landing-text">你現在安全了。</div>
+        <div class="landing-sub">
+            這份平靜是真實的。<br>如果你想把這種狀態延續到每一天...
+        </div>
+        
+        <a href="https://your-course-page.com" class="btn-cta" id="cta-btn">了解系統重連計畫</a>
+        
+        <button onclick="location.href='menu.html'" class="btn-home-text" id="home-btn">回到主選單休息</button>
+    </div>
+
+    <script>
+        const audio = document.getElementById('audio-player');
+        const playBtn = document.getElementById('play-btn');
+        const progressFill = document.getElementById('progress-fill');
+        const progressBg = document.getElementById('progress-bg');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationEl = document.getElementById('duration');
+        const orb = document.getElementById('orb');
+        
+        const controls = document.getElementById('controls');
+        const header = document.getElementById('app-header');
+        const overlay = document.getElementById('landing-overlay');
+        const ctaBtn = document.getElementById('cta-btn');
+        const homeBtn = document.getElementById('home-btn');
+
+        // 格式化時間 (MM:SS)
+        function formatTime(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+        }
+
+        // 初始化時長
+        audio.addEventListener('loadedmetadata', () => {
+            durationEl.innerText = formatTime(audio.duration);
+        });
+
+        // 播放/暫停邏輯
+        playBtn.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.play();
+                playBtn.innerText = 'II'; // 暫停符號
+                orb.classList.add('playing'); // 啟動呼吸動畫
+            } else {
+                audio.pause();
+                playBtn.innerText = '▶';
+                orb.classList.remove('playing'); // 停止呼吸動畫
+            }
+        });
+
+        // 更新進度條
+        audio.addEventListener('timeupdate', () => {
+            const percent = (audio.currentTime / audio.duration) * 100;
+            progressFill.style.width = `${percent}%`;
+            currentTimeEl.innerText = formatTime(audio.currentTime);
+        });
+
+        // 點擊進度條跳轉 (Scrubbing)
+        progressBg.addEventListener('click', (e) => {
+            const width = progressBg.clientWidth;
+            const clickX = e.offsetX;
+            const duration = audio.duration;
+            audio.currentTime = (clickX / width) * duration;
+        });
+
+        // --- 核心邏輯：結束後的溫柔落地 ---
+        audio.addEventListener('ended', () => {
+            // 1. 停止視覺動畫
+            playBtn.innerText = '▶';
+            orb.classList.remove('playing');
+            
+            // 2. 淡出控制介面
+            controls.style.opacity = '0';
+            header.style.opacity = '0';
+            orb.style.opacity = '0'; // 光球也淡出，讓畫面全黑
+
+            // 3. 顯示落地層 (延遲 1 秒執行，製造呼吸空間)
+            setTimeout(() => {
+                overlay.style.display = 'flex';
+                // 強制重繪
+                setTimeout(() => {
+                    overlay.style.opacity = '1';
+                }, 50);
+
+                // 4. 延遲顯示 CTA，讓用戶先看到「你現在安全了」
+                setTimeout(() => {
+                    ctaBtn.style.opacity = '1';
+                    homeBtn.style.opacity = '1';
+                }, 2500);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

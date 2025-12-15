@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Afterglow | 呼吸調節</title>
+    <style>
+        /* --- 基礎設定：極致黑底 --- */
+        body {
+            background-color: #000;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden;
+            color: #fff;
+        }
+
+        /* --- 頂部導航 --- */
+        .nav-top {
+            position: absolute;
+            top: 30px;
+            width: 100%;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .btn-back {
+            color: #555;
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 10px 20px;
+            border: 1px solid #333;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+        
+        .btn-back:hover {
+            border-color: #ff00aa;
+            color: #fff;
+        }
+
+        /* --- 呼吸球核心容器 --- */
+        .container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- 粉色光暈球體 --- */
+        .sphere {
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 0, 170, 0.1);
+            border-radius: 50%;
+            position: absolute;
+            /* 關鍵：4-2-6 呼吸法總週期 12秒 */
+            animation: breathe-cycle 12s infinite ease-in-out;
+            border: 2px solid rgba(255, 0, 170, 0.5);
+            box-shadow: 0 0 40px rgba(255, 0, 170, 0.3), inset 0 0 20px rgba(255, 0, 170, 0.2);
+        }
+
+        /* --- 中央引導文字 --- */
+        .instruction {
+            position: absolute;
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 300;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+            pointer-events: none; /* 讓點擊穿透 */
+        }
+
+        /* --- 輔助計時圈 (外軌) --- */
+        .track {
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            border: 1px dashed #222;
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        /* --- CSS 動畫邏輯 (12秒循環) --- 
+           0% - 33.3% (4秒): 吸氣 (變大)
+           33.3% - 50% (2秒): 憋氣 (保持最大)
+           50% - 100% (6秒): 吐氣 (變小)
+        */
+        @keyframes breathe-cycle {
+            0% { 
+                transform: scale(1); 
+                box-shadow: 0 0 40px rgba(255, 0, 170, 0.3);
+                border-color: rgba(255, 0, 170, 0.5);
+            }
+            33.33% { 
+                transform: scale(2.2); 
+                box-shadow: 0 0 80px rgba(255, 0, 170, 0.8);
+                border-color: rgba(255, 0, 170, 0.8);
+            }
+            50% { 
+                transform: scale(2.2); 
+                box-shadow: 0 0 80px rgba(255, 0, 170, 0.8);
+                border-color: rgba(255, 0, 170, 0.8);
+            }
+            100% { 
+                transform: scale(1); 
+                box-shadow: 0 0 30px rgba(255, 0, 170, 0.2);
+                border-color: rgba(255, 0, 170, 0.4);
+            }
+        }
+
+        /* --- 底部提示 --- */
+        .footer-tip {
+            position: absolute;
+            bottom: 40px;
+            color: #666;
+            font-size: 0.8rem;
+            text-align: center;
+            width: 80%;
+            line-height: 1.5;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="nav-top">
+        <a href="menu.html" class="btn-back">結束 End Session</a>
+    </div>
+
+    <div class="container">
+        <div class="track"></div>
+        <div class="sphere"></div>
+        <div class="instruction" id="text-guide">準備</div>
+    </div>
+
+    <div class="footer-tip">
+        跟隨光暈節奏<br>鼻吸 • 屏氣 • 口吐
+    </div>
+
+    <script>
+        const textGuide = document.getElementById('text-guide');
+        
+        // 定義呼吸週期的文字變化 (單位：毫秒)
+        // 總時長 12000ms = 4s 吸 + 2s 憋 + 6s 吐
+        
+        function runBreathingCycle() {
+            // 1. 吸氣 (0s - 4s)
+            textGuide.innerText = "吸氣 Inhale";
+            textGuide.style.opacity = 1;
+
+            // 2. 憋氣 (4s - 6s)
+            setTimeout(() => {
+                textGuide.innerText = "憋氣 Hold";
+            }, 4000);
+
+            // 3. 吐氣 (6s - 12s)
+            setTimeout(() => {
+                textGuide.innerText = "吐氣 Exhale";
+            }, 6000);
+        }
+
+        // 啟動第一輪
+        runBreathingCycle();
+
+        // 設定循環 (每 12 秒執行一次)
+        setInterval(runBreathingCycle, 12000);
+
+    </script>
+</body>
+</html>

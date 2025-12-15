@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Afterglow | 入口</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #ccc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .gate-container {
+            width: 100%;
+            max-width: 450px; /* 手機適配寬度 */
+        }
+
+        h1 { text-align: center; color: #fff; letter-spacing: 2px; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #666; font-size: 0.8rem; margin-bottom: 30px; }
+
+        /* 滾動條款區 - 縮小高度，降低閱讀壓力 */
+        .legal-text {
+            height: 120px;
+            overflow-y: scroll;
+            background: #111;
+            border: 1px solid #333;
+            padding: 15px;
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 25px;
+            border-radius: 8px;
+        }
+
+        /* 優化後的按鈕式選項 (Big Hit Area) */
+        .check-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        /* 隱藏原生 checkbox，改用卡片樣式 */
+        .check-card input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 100%;
+            width: 100%;
+            left: 0;
+            top: 0;
+            z-index: 2;
+        }
+
+        /* 自訂勾選框外觀 */
+        .custom-checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #555;
+            border-radius: 50%; /* 圓形看起來更像按鈕 */
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .custom-checkbox::after {
+            content: '✓';
+            color: #000;
+            font-weight: bold;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.2s;
+        }
+
+        /* 選中狀態 */
+        .check-card.checked {
+            background: #e0e0e0;
+            border-color: #fff;
+        }
+        .check-card.checked .text-content { color: #000; }
+        .check-card.checked .custom-checkbox {
+            background: #000;
+            border-color: #000;
+        }
+        .check-card.checked .custom-checkbox::after {
+            opacity: 1;
+            transform: scale(1);
+            color: #fff;
+        }
+
+        .text-content {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: #aaa;
+            pointer-events: none; /* 讓點擊穿透到 input */
+        }
+        
+        .highlight { color: #fff; font-weight: bold; }
+
+        /* 主按鈕 */
+        .btn-enter {
+            width: 100%;
+            padding: 16px;
+            background: #333;
+            color: #777;
+            border: none;
+            border-radius: 50px; /* 膠囊狀更友善 */
+            font-size: 1rem;
+            font-weight: bold;
+            margin-top: 10px;
+            cursor: not-allowed;
+            transition: all 0.3s;
+        }
+
+        .btn-enter.active {
+            background: #fff;
+            color: #000;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="gate-container">
+    <h1>AFTERGLOW</h1>
+    <div class="subtitle">數位減害與身心引導</div>
+
+    <div class="legal-text">
+        <strong style="color:#fff">免責聲明摘要：</strong><br>
+        1. 本平台僅供教育與減害，非醫療診斷 。<br>
+        2. 若身體不適請撥打 119 。<br>
+        3. 資料僅供參考，不鼓勵非法行為 。<br>
+        4. 系統不儲存您的個人資料 。
+    </div>
+
+    <div class="check-card" id="card1">
+        <input type="checkbox" class="mandatory-check" onchange="toggleCard('card1')">
+        <div class="custom-checkbox"></div>
+        <div class="text-content">
+            我是<span class="highlight">成年人(18+)</span>，且知悉遇緊急狀況應直接<span class="highlight">撥打 119</span>。
+        </div>
+    </div>
+
+    <div class="check-card" id="card2">
+        <input type="checkbox" class="mandatory-check" onchange="toggleCard('card2')">
+        <div class="custom-checkbox"></div>
+        <div class="text-content">
+            我同意<span class="highlight">免責條款</span>，理解這不是醫療建議，並<span class="highlight">自行承擔風險</span>。
+        </div>
+    </div>
+
+    <button id="enterBtn" class="btn-enter">進入 (Enter)</button>
+    
+    <div style="text-align:center; margin-top:20px;">
+        <a href="https://google.com" style="color:#444; text-decoration:none; font-size:0.8rem;">離開 Leave</a>
+    </div>
+</div>
+
+<script>
+    function toggleCard(id) {
+        const card = document.getElementById(id);
+        const checkbox = card.querySelector('input');
+        
+        if (checkbox.checked) {
+            card.classList.add('checked');
+        } else {
+            card.classList.remove('checked');
+        }
+        checkStatus();
+    }
+
+    function checkStatus() {
+        const checks = document.querySelectorAll('.mandatory-check');
+        const btn = document.getElementById('enterBtn');
+        const allChecked = Array.from(checks).every(c => c.checked);
+
+        if (allChecked) {
+            btn.disabled = false;
+            btn.classList.add('active');
+        } else {
+            btn.disabled = true;
+            btn.classList.remove('active');
+        }
+    }
+
+    document.getElementById('enterBtn').addEventListener('click', () => {
+        if (!document.getElementById('enterBtn').disabled) {
+            sessionStorage.setItem('ag_consent', 'true');
+            // 這裡改成你實際的目標頁面
+            window.location.href = 'support/Support.html';
+        }
+    });
+</script>
+
+</body>
+</html>

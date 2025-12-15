@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Afterglow | 冥想選單</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sacramento&display=swap" rel="stylesheet">
+    <style>
+        /* --- 基礎設定 --- */
+        body {
+            background-color: #000;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden; /* 防止滾動，保持沈浸感 */
+            color: #fff;
+        }
+
+        /* --- 頂部導航 --- */
+        header {
+            width: 100%;
+            padding: 30px 20px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            position: relative;
+        }
+
+        .logo {
+            font-family: 'Sacramento', cursive;
+            font-size: 3rem;
+            color: #e0e0e0;
+            text-shadow: 0 0 5px rgba(255,255,255,0.3);
+            margin: 0;
+            line-height: 1;
+        }
+
+        .btn-home {
+            background: transparent;
+            border: 1px solid #00aaff;
+            color: #ccc;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            box-shadow: 0 0 10px rgba(0, 170, 255, 0.2);
+            transition: all 0.3s;
+        }
+
+        .btn-home:hover {
+            background: rgba(0, 170, 255, 0.1);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(0, 170, 255, 0.5);
+        }
+
+        /* --- 主選單區域 (置中) --- */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 40px; /* 按鈕之間的距離 */
+            width: 100%;
+            position: relative;
+        }
+
+        /* --- 霓虹圓圈按鈕共用樣式 --- */
+        .circle-btn {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            position: relative;
+            transition: transform 0.3s ease;
+            backdrop-filter: blur(5px); /* 磨砂質感 */
+        }
+
+        .circle-btn span {
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            font-weight: 300;
+            z-index: 2;
+            color: rgba(255,255,255,0.9);
+            text-shadow: 0 0 5px rgba(0,0,0,0.8);
+        }
+
+        .circle-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 1. 藍色光暈 (語音引導) */
+        .glow-blue {
+            border: 2px solid rgba(0, 170, 255, 0.3);
+            box-shadow: 
+                0 0 30px rgba(0, 170, 255, 0.2),
+                inset 0 0 30px rgba(0, 170, 255, 0.2);
+            animation: breathe-blue 4s infinite ease-in-out;
+        }
+        
+        /* 2. 粉色光暈 (呼吸球) */
+        .glow-pink {
+            border: 2px solid rgba(255, 0, 170, 0.3);
+            box-shadow: 
+                0 0 30px rgba(255, 0, 170, 0.2),
+                inset 0 0 30px rgba(255, 0, 170, 0.2);
+            animation: breathe-pink 4s infinite ease-in-out; /* 錯開動畫時間 */
+        }
+
+        /* 3. 暗色鎖頭 (付費課程) - 這是你的變現入口 */
+        .glow-locked {
+            width: 160px; /* 稍微小一點 */
+            height: 160px;
+            border: 1px solid rgba(100, 100, 100, 0.3);
+            background: rgba(20, 20, 20, 0.5);
+            color: #555;
+            flex-direction: column;
+            gap: 10px;
+            cursor: pointer;
+        }
+        
+        .glow-locked span {
+            font-size: 0.9rem;
+            color: #666;
+            text-shadow: none;
+        }
+
+        .lock-icon { font-size: 1.5rem; opacity: 0.5; }
+
+        /* --- 呼吸動畫 Keyframes --- */
+        @keyframes breathe-blue {
+            0%, 100% { box-shadow: 0 0 25px rgba(0, 170, 255, 0.2), inset 0 0 25px rgba(0, 170, 255, 0.2); }
+            50% { box-shadow: 0 0 50px rgba(0, 170, 255, 0.5), inset 0 0 50px rgba(0, 170, 255, 0.4); }
+        }
+
+        @keyframes breathe-pink {
+            0%, 100% { box-shadow: 0 0 25px rgba(255, 0, 170, 0.2), inset 0 0 25px rgba(255, 0, 170, 0.2); }
+            50% { box-shadow: 0 0 50px rgba(255, 0, 170, 0.5), inset 0 0 50px rgba(255, 0, 170, 0.4); }
+        }
+
+        /* --- 底部版權 --- */
+        footer {
+            font-size: 0.6rem;
+            color: #444;
+            padding-bottom: 20px;
+            text-align: center;
+        }
+
+        /* --- 銷售彈窗 (Modal) --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            display: none; /* 預設隱藏 */
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .modal-content {
+            background: #111;
+            border: 1px solid #333;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 80%;
+            box-shadow: 0 0 30px rgba(255,255,255,0.05);
+        }
+        
+        .modal-title { color: #fff; margin-bottom: 10px; font-size: 1.2rem; }
+        .modal-text { color: #888; font-size: 0.9rem; line-height: 1.5; margin-bottom: 25px; }
+        
+        .btn-cta {
+            background: #fff; color: #000;
+            padding: 10px 20px; border-radius: 20px;
+            text-decoration: none; font-weight: bold; font-size: 0.9rem;
+            display: inline-block;
+        }
+        
+        .btn-close {
+            display: block; margin-top: 15px; color: #555; font-size: 0.8rem; background: none; border: none; cursor: pointer; text-decoration: underline;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 class="logo">Afterglow</h1>
+        <a href="../support/Support.html" class="btn-home">回選單</a>
+    </header>
+
+    <main>
+        <a href="guide.html" class="circle-btn glow-blue">
+            <span>語音引導</span>
+        </a>
+
+        <a href="breathing.html" class="circle-btn glow-pink">
+            <span>呼吸球</span>
+        </a>
+
+        <div class="circle-btn glow-locked" onclick="openModal()">
+            <div class="lock-icon">🔒</div>
+            <span>系統重連課程</span>
+        </div>
+    </main>
+
+    <footer>
+        隱私政策 | 法律免責 | 2025 Afterglow
+    </footer>
+
+    <div class="modal-overlay" id="upsellModal">
+        <div class="modal-content">
+            <div class="modal-title">解鎖完整系統</div>
+            <div class="modal-text">
+                急救工具只能暫時止痛。<br>
+                是否要了解「8週神經系統重連計畫」，徹底改善表現焦慮？
+            </div>
+            <a href="https://your-course-url.com" class="btn-cta">查看課程詳情</a>
+            <button class="btn-close" onclick="closeModal()">暫時不要，謝謝</button>
+        </div>
+    </div>
+
+    <script>
+        // 簡單的彈窗邏輯
+        const modal = document.getElementById('upsellModal');
+
+        function openModal() {
+            modal.style.display = 'flex';
+            // 強制重繪以觸發淡入動畫
+            setTimeout(() => { modal.style.opacity = '1'; }, 10);
+        }
+
+        function closeModal() {
+            modal.style.opacity = '0';
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
+        }
+
+        // 點擊背景關閉
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+    </script>
+
+</body>
+</html>
