@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
+    <script>
+    // 🛡️ 安全檢查：如果沒有同意過條款，強制踢回首頁
+    if (!sessionStorage.getItem('ag_consent')) {
+        // 因為這些檔案在 support 資料夾內，所以要往上一層 (../) 找 index.html
+        window.location.href = '../index.html';
+    }
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Afterglow | 語音引導</title>
@@ -323,4 +330,5 @@
         });
     </script>
 </body>
+
 </html>
