@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
+    <script>
+        // 🛡️ 安全檢查
+        if (!sessionStorage.getItem('ag_consent')) {
+            window.location.href = '../index.html';
+        }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Afterglow | 語音引導</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sacramento&display=swap" rel="stylesheet">
+    <style>
+        /* ... 這裡原本有很多 CSS 樣式，全部都要留著 ... */
+    </style>
+</head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ChemAid | 風險混合計算器</title>
@@ -242,4 +256,5 @@
 </script>
 
 </body>
+
 </html>
