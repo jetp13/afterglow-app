@@ -1,1 +1,1 @@
-# afterglow-app
+「Archived: legacy prototype. Not the active development line.」
